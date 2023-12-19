@@ -3,11 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="description" content="a simple time logger for capturing the elapse time spent working in a day made by aspiring developer Abdool Zaid Toorabally email: aztoorabally7447@gmail.com">
+    <title>time logger</title>
+    
 </head>
 <body>
-    <button>start</button>
-    <button>pause</button>
-    <button>get logs</button>
+    <button id="init">start</button>
+    <button id="pause">pause</button>
+    <button id="res">get logs</button>
+    <p id="print_out"></p>
 </body>
+<script>
+
+function formatElapsedTime(milliseconds) {
+const seconds = Math.floor(milliseconds / 1000);
+const minutes = Math.floor(seconds / 60);
+const hours = Math.floor(minutes / 60);
+
+const formattedHours = String(hours).padStart(2, '0');
+const formattedMinutes = String(minutes % 60).padStart(2, '0');
+const formattedSeconds = String(seconds % 60).padStart(2, '0');
+
+return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+}
+
+    let init={}
+        init.val=window.localStorage.init? JSON.parse(window.localStorage.init) : false
+        init.corpus= document.querySelector("#init")
+        init.text=['stop','start']
+        init.func= (self)=>{
+        time.push([self.corpus.innerHTML,self.time])
+        }
+        let pause ={}
+        pause.val = window.localStorage.pause? JSON.parse(window.localStorage.pause) : false
+        pause.corpus= document.querySelector("#pause")
+        pause.text= ['resume', 'pause']
+        pause.func=(self)=>{
+            time.push([self.corpus.innerHTML,self.time])
+            localStorage.setItem("time", JSON.stringify(time))
+        }
+        let res = {}
+        res.val= window.localStorage.res? JSON.parse(window.localStorage.res) : false
+        res.corpus= document.querySelector('#res')
+        res.text=[ 'get logs', 'get logs']
+        res.print= document.querySelector("#print_out")
+        res.func=(self)=>{
+                let rep ='report \n'       
+                let pause_time =0 
+                let br_start= 0       
+                let br_end= 0
+                if(time.length==0){
+                    alert("no logs")
+                    return
+                }
+                       res.print.innerHTML=rep
+                            time.forEach((log)=>{
+                                const date = new Date(log[1]);
+                                const formattedDate = date.toLocaleString();
+                                rep += `${log[0]} : ${formattedDate} \n`
+                                res.print.innerHTML += `<p>${log[0]} : ${formattedDate} </p>`
+
+
+                                 if (log[0]=="pause") {
+                                    br_start= log[1]
+                                 } else if (log[0]=="resume") {
+                                    br_end= log[1]
+                                    if (br_start!=0) {
+                                        pause_time += br_end-br_start
+                                        
+                                        br_start=0
+                                        br_end=0
+                                    }
+                                 }
+
+                            })
+                            let start= time.at(0)[1]
+                            let end = time.at(-1)[1]
+                        
+                            let elapsed = end - start
+                            elapsed = formatElapsedTime(elapsed)
+                            rep += `elapsed time : ${elapsed} \n`
+                            res.print.innerHTML += `<p>elapsed time : ${elapsed} </p>`
+                            // calc break time
+                            rep +=`on break for : ${formatElapsedTime(pause_time)}`
+                            res.print.innerHTML +=`<p>on break for : ${formatElapsedTime(pause_time)}</p>`
+
+
+                            navigator.clipboard
+                            .writeText(rep)
+                            .then(() => {alert('logs copied to clipboard')
+                                        })
+                            
+                        localStorage.clear()
+                            
+                        }
+        let time = localStorage.time? JSON.parse(localStorage.time): []
+        let report
+        btn = document.querySelectorAll('button')
+        btn.forEach(element => {
+            let val 
+            try {
+                
+                eval(`val = JSON.parse(window.localStorage.${element.id})`)
+                
+            } catch (error) {
+            }
+            if (val){
+                if (val == true){
+                    let obj
+                                eval(`obj= ${element.id}`)
+                                element.innerHTML=obj.text[0]
+                            }        
+                        }
+                    });
+                    
+                    window.addEventListener('click',(e)=>{
+                        if(e.target.id != false){
+                            let obj 
+                            eval(`obj= ${e.target.id}`)
+                            obj.time= Date.now()
+                            
+                            obj.func(obj)
+                            if (obj.val==false){
+                                obj.corpus.innerHTML= obj.text[0]
+                            }else{
+                                obj.corpus.innerHTML= obj.text[1]
+                            }
+                            obj.val= !obj.val
+                            window.localStorage.setItem(e.target.id,JSON.stringify(obj.val))
+                            
+                        }
+                    })
+
+
+
+</script>
 </html>
